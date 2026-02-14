@@ -4,9 +4,9 @@ A simple React + Vite web app that fetches adorable cat images by breed using [T
 
 ## Features
 
-- 🐱 Search cat images by breed name
-- 🎲 Fetch random cat images  
-- ⏳ Loading spinner while fetching data
+- Search cat images by breed name
+- Fetch random cat images  
+- Loading spinner while fetching data
 
 ## Tech Stack
 
