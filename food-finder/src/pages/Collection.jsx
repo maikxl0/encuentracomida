@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import LoadingCat from "../components/LoadingCat";
 import { getRandomFoodPhoto, searchFoodPhotos } from "../api/foodApi";
 
 function Collection() {
@@ -48,7 +47,6 @@ function Collection() {
 
       <h1 className="title">{title}</h1>
 
-      {isLoading && <LoadingCat label="Cargando imagenes..." />}
       {errorMessage && <p className="status-text error-text">{errorMessage}</p>}
 
       {!isLoading && !errorMessage && images.length === 0 && (

@@ -1,10 +1,13 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FaRandom, FaSearch } from "react-icons/fa";
+import { getRandomFoodPhoto } from "../api/foodApi";
 
 function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [randomImage, setRandomImage] = useState(null);
+  const [isRandomLoading, setIsRandomLoading] = useState(false);
   const navigate = useNavigate();
 
   function handleSearch() {
@@ -17,14 +20,30 @@ function Home() {
     navigate(`/collection/${encodeURIComponent(term)}`);
   }
 
-  function handleRandomize() {
+  async function handleRandomize() {
+    setIsRandomLoading(true);
     setErrorMessage("");
-    navigate("/collection/random");
+
+    try {
+      const image = await getRandomFoodPhoto();
+      if (!image?.id) {
+        throw new Error("No encontre imagen aleatoria.");
+      }
+      setRandomImage(image);
+    } catch (error) {
+      setErrorMessage(error.message || "No se pudo cargar imagen aleatoria.");
+    } finally {
+      setIsRandomLoading(false);
+    }
   }
+
+  useEffect(() => {
+    void handleRandomize();
+  }, []);
 
   return (
     <div className="page">
-      <h1 className="title">Food Finder</h1>
+      <h1 className="title">Buscador de comidas</h1>
 
       <div className="search-section">
         <input
@@ -43,13 +62,29 @@ function Home() {
           Buscar
         </button>
 
-        <button className="random-button" onClick={handleRandomize}>
+        <button
+          className="random-button"
+          onClick={() => void handleRandomize()}
+          disabled={isRandomLoading}
+        >
           <FaRandom />
           Aleatorio
         </button>
       </div>
 
       {errorMessage && <p className="status-text error-text">{errorMessage}</p>}
+
+      <section className="home-random-section">
+        {randomImage?.id && (
+          <Link to={`/image/${randomImage.id}`} className="home-random-link">
+            <img
+              src={randomImage.urls?.regular || randomImage.urls?.small}
+              alt={randomImage.alt_description || "Comida aleatoria"}
+              className="home-random-image"
+            />
+          </Link>
+        )}
+      </section>
     </div>
   );
 }

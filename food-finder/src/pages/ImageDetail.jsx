@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import LoadingCat from "../components/LoadingCat";
 import { getFoodPhotoById } from "../api/foodApi";
 
 function ImageDetail() {
@@ -36,7 +35,6 @@ function ImageDetail() {
 
       <h1 className="title">Detalle</h1>
 
-      {isLoading && <LoadingCat label="Cargando detalle..." />}
       {errorMessage && <p className="status-text error-text">{errorMessage}</p>}
 
       {!isLoading && !errorMessage && image && (

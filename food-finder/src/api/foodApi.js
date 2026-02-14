@@ -77,6 +77,28 @@ function normalizePagesToPhotos(pages) {
   return list.map(normalizePhoto).filter(Boolean);
 }
 
+function pickRandom(items) {
+  if (!items.length) {
+    return null;
+  }
+
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+async function fetchCategoryPhotos(category) {
+  const data = await fetchCommonsApi({
+    generator: "categorymembers",
+    gcmtitle: `Category:${category}`,
+    gcmnamespace: "6",
+    gcmlimit: "50",
+    prop: "imageinfo",
+    iiprop: "url|size|mime|extmetadata",
+    iiurlwidth: "800",
+  });
+
+  return normalizePagesToPhotos(data?.query?.pages);
+}
+
 export async function searchFoodPhotos(query, page = 1, perPage = 20) {
   const limit = Math.max(1, Math.min(50, Number(perPage) || 20));
   const offset = Math.max(0, ((Number(page) || 1) - 1) * limit);
@@ -99,26 +121,23 @@ export async function searchFoodPhotos(query, page = 1, perPage = 20) {
 }
 
 export async function getRandomFoodPhoto() {
-  const randomCategory = RANDOM_FOOD_CATEGORIES[
-    Math.floor(Math.random() * RANDOM_FOOD_CATEGORIES.length)
-  ];
+  const categories = [...RANDOM_FOOD_CATEGORIES].sort(() => Math.random() - 0.5);
 
-  const data = await fetchCommonsApi({
-    generator: "categorymembers",
-    gcmtitle: `Category:${randomCategory}`,
-    gcmnamespace: "6",
-    gcmlimit: "50",
-    prop: "imageinfo",
-    iiprop: "url|size|mime|extmetadata",
-    iiurlwidth: "800",
-  });
-
-  const photos = normalizePagesToPhotos(data?.query?.pages);
-  if (!photos.length) {
-    throw new Error("No encontre imagen aleatoria.");
+  for (const category of categories) {
+    const photos = await fetchCategoryPhotos(category);
+    const randomPhoto = pickRandom(photos);
+    if (randomPhoto?.id) {
+      return randomPhoto;
+    }
   }
 
-  return photos[Math.floor(Math.random() * photos.length)];
+  const fallback = await searchFoodPhotos("food", 1, 30);
+  const fallbackPhoto = pickRandom(fallback.results || []);
+  if (fallbackPhoto?.id) {
+    return fallbackPhoto;
+  }
+
+  throw new Error("No encontre imagen aleatoria.");
 }
 
 export async function getFoodPhotoById(photoId) {
